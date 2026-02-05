@@ -30,7 +30,7 @@ export default function Login() {
       <div className="auth-card">
         <div className="auth-header">
           <h1 className="logo-text">Trutim</h1>
-          <p>Live chat & collaboration for engineers</p>
+          <p>Real-time chat, video calls & collaboration for engineers</p>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
           {error && <div className="auth-error">{error}</div>}

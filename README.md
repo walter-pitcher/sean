@@ -1,6 +1,6 @@
 # Trutim
 
-**Live chat and business collaboration for senior engineers and developers.**
+**Real-time chat and collaboration for engineers and developers.** Built on Django Channels (WebSockets) and WebRTC for reliable live messaging, video calls, and screen sharing.
 
 Features:
 - **Live Chat** – Real-time messaging with WebSockets
