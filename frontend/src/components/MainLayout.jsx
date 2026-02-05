@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { rooms, users as usersApi } from '../api';
+import AIPromptPanel from './AIPromptPanel';
 import './MainLayout.css';
 
 export default function MainLayout() {
@@ -16,6 +17,7 @@ export default function MainLayout() {
   const [newRoom, setNewRoom] = useState({ name: '', description: '' });
   const [createError, setCreateError] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   useEffect(() => {
     Promise.all([rooms.list(), usersApi.list()])
@@ -163,6 +165,14 @@ export default function MainLayout() {
       <div className="main-content">
         <header className="main-header">
           <div className="header-spacer" />
+          <button
+            className="header-ai-btn"
+            onClick={() => setShowAIPanel(true)}
+            title="Open AI Assistant"
+          >
+            <span className="ai-btn-icon">✨</span>
+            AI
+          </button>
           <div className="header-user">
             <button
               className="user-menu-btn"
@@ -193,6 +203,8 @@ export default function MainLayout() {
           <Outlet />
         </div>
       </div>
+
+      <AIPromptPanel isOpen={showAIPanel} onClose={() => setShowAIPanel(false)} />
 
       {showCreateModal && (
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
