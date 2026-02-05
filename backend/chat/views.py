@@ -1,0 +1,117 @@
+"""
+Trutim REST API Views
+"""
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import get_user_model
+from .models import Room, Message, CallSession
+from .serializers import UserSerializer, RoomSerializer, MessageSerializer, CallSessionSerializer
+
+User = get_user_model()
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['user'] = UserSerializer(self.user).data
+        return data
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+class RegisterView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        email = request.data.get('email')
+        password = request.data.get('password')
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
+        title = request.data.get('title', '')
+
+        if not username or not password:
+            return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(
+            username=username, email=email, password=password,
+            first_name=first_name, last_name=last_name, title=title
+        )
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        return User.objects.exclude(id=self.request.user.id)
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        return Response(UserSerializer(request.user).data)
+
+
+class RoomViewSet(viewsets.ModelViewSet):
+    serializer_class = RoomSerializer
+
+    def get_queryset(self):
+        return Room.objects.filter(members=self.request.user).distinct()
+
+    def perform_create(self, serializer):
+        room = serializer.save(created_by=self.request.user)
+        room.members.add(self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def join(self, request, pk=None):
+        room = self.get_object()
+        room.members.add(request.user)
+        return Response({'status': 'joined'})
+
+    @action(detail=True, methods=['post'])
+    def leave(self, request, pk=None):
+        room = self.get_object()
+        room.members.remove(request.user)
+        return Response({'status': 'left'})
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    serializer_class = MessageSerializer
+
+    def get_queryset(self):
+        room_id = self.request.query_params.get('room')
+        if room_id:
+            return Message.objects.filter(room_id=room_id, room__members=self.request.user)
+        return Message.objects.none()
+
+    def perform_create(self, serializer):
+        serializer.save(sender=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def react(self, request, pk=None):
+        msg = self.get_object()
+        emoji = request.data.get('emoji')
+        if not emoji:
+            return Response({'error': 'Emoji required'}, status=status.HTTP_400_BAD_REQUEST)
+        reactions = msg.reactions or {}
+        user_id = str(request.user.id)
+        if emoji not in reactions:
+            reactions[emoji] = []
+        if user_id in reactions[emoji]:
+            reactions[emoji].remove(user_id)
+        else:
+            reactions[emoji].append(user_id)
+        if not reactions[emoji]:
+            del reactions[emoji]
+        msg.reactions = reactions
+        msg.save()
+        return Response(MessageSerializer(msg).data)
