@@ -42,6 +42,7 @@
 | **Database** | PostgreSQL (production) / SQLite (development) |
 | **Real-time** | WebSockets, WebRTC |
 | **Frontend** | React 19, Vite 7 |
+| **AI Chat** | Vercel AI SDK (@ai-sdk/react), OpenAI API |
 | **HTTP Client** | Axios |
 
 ---
@@ -130,6 +131,20 @@ npm run dev
 
 The application will be available at **http://localhost:5173**.
 
+### 7. (Optional) Enable AI Assistant
+
+To use the in-app AI chat panel, set your OpenAI API key:
+
+```bash
+# Unix / macOS / Git Bash
+export OPENAI_API_KEY=sk-your-key-here
+
+# Windows CMD
+set OPENAI_API_KEY=sk-your-key-here
+```
+
+Then click the **AI** button in the header to open the assistant.
+
 ---
 
 ## Configuration
@@ -179,6 +194,7 @@ For production, use a `.env` file with `python-dotenv` or your deployment platfo
 sean/
 ├── backend/
 │   ├── chat/                 # Chat application
+│   │   ├── ai_views.py       # AI chat streaming endpoint
 │   │   ├── consumers.py      # WebSocket consumers (chat, call signaling)
 │   │   ├── middleware.py     # JWT auth for WebSockets
 │   │   ├── models.py         # User, Room, Message
@@ -194,7 +210,7 @@ sean/
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── components/       # EmojiPicker, VideoCall
+│   │   ├── components/       # AIPromptPanel, EmojiPicker, VideoCall
 │   │   ├── context/          # AuthContext
 │   │   ├── hooks/            # useChatSocket, useCallSocket
 │   │   ├── pages/            # Login, Register, Dashboard, Room
@@ -227,6 +243,7 @@ Base URL: `http://localhost:8001/api` (or your backend host)
 | `POST` | `/api/rooms/` | Create a room |
 | `GET` | `/api/messages/?room=<id>` | List messages for a room |
 | `GET` | `/api/users/` | List users (ViewSet) |
+| `POST` | `/api/ai/chat/` | AI chat (streaming; requires `OPENAI_API_KEY`) |
 
 ---
 
@@ -272,6 +289,7 @@ Access the admin panel at `http://localhost:8001/admin/` after creating a superu
    - `DEBUG=False`
    - `DJANGO_SECRET_KEY` (generate a secure random key)
    - Configure `ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS`
+   - `OPENAI_API_KEY` (optional; for AI Assistant)
 
 2. **Use PostgreSQL** (set `USE_SQLITE=False` and configure `DB_*` variables).
 
