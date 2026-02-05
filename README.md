@@ -29,6 +29,7 @@
 | **Emoji Support** | Quick emoji bar, full emoji picker, and message reactions |
 | **User Profiles** | Custom profiles with username, email, and professional title |
 | **Room Management** | Create and join chat rooms with persistent message history |
+| **AI Assistant** | In-app AI chat panel powered by Vercel AI SDK and OpenAI (streaming) |
 
 ---
 
@@ -145,6 +146,8 @@ The application will be available at **http://localhost:5173**.
 | `DB_PASSWORD` | `postgres` | PostgreSQL password |
 | `DB_HOST` | `localhost` | Database host |
 | `DB_PORT` | `5432` | Database port |
+| `OPENAI_API_KEY` | — | OpenAI API key for the AI Assistant panel (optional) |
+| `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model to use (e.g. `gpt-4o`, `gpt-4o-mini`) |
 
 ### Example: PostgreSQL Configuration
 

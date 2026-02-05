@@ -206,6 +206,31 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.header-ai-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.header-ai-btn:hover {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ai-btn-icon {
+  font-size: 1rem;
 }
 
 .header-user {
