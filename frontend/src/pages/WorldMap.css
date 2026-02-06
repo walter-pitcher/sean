@@ -17,12 +17,41 @@
   border-bottom: 1px solid var(--border);
 }
 
+.world-map-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .world-map-header h1 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 1.25rem;
   font-weight: 600;
+}
+
+.world-map-refresh-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.world-map-refresh-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.world-map-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .world-map-subtitle {
