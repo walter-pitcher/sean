@@ -4,8 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { users } from '../api';
 import AvatarUpload from '../components/AvatarUpload';
 import LocationPicker from '../components/LocationPicker';
+import ResumeUpload from '../components/ResumeUpload';
 import { ArrowLeftIcon } from '../components/icons';
 import './Profile.css';
+
+const SOCIAL_FIELDS = ['github', 'facebook', 'twitter', 'instagram', 'youtube'];
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
@@ -16,6 +19,15 @@ export default function Profile() {
     first_name: '',
     last_name: '',
     title: '',
+    github: '',
+    facebook: '',
+    twitter: '',
+    instagram: '',
+    youtube: '',
+    gmail: '',
+    telegram: '',
+    discord: '',
+    whatsapp: '',
   });
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -29,6 +41,15 @@ export default function Profile() {
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         title: user.title || '',
+        github: user.github || '',
+        facebook: user.facebook || '',
+        twitter: user.twitter || '',
+        instagram: user.instagram || '',
+        youtube: user.youtube || '',
+        gmail: user.gmail || '',
+        telegram: user.telegram || '',
+        discord: user.discord || '',
+        whatsapp: user.whatsapp || '',
       });
       if (user.latitude != null && user.longitude != null) {
         setLocation({
@@ -52,6 +73,12 @@ export default function Profile() {
     await users.uploadAvatar(file);
     await refreshUser();
     setMessage({ type: 'success', text: 'Avatar updated successfully.' });
+  };
+
+  const handleResumeUpload = async (file) => {
+    await users.uploadResume(file);
+    await refreshUser();
+    setMessage({ type: 'success', text: 'Resume updated successfully.' });
   };
 
   const handleSubmit = async (e) => {
@@ -164,6 +191,78 @@ export default function Profile() {
               disabled={loading}
             />
           </div>
+
+          <section className="profile-section">
+            <h2 className="profile-section-title">Social Links</h2>
+            {SOCIAL_FIELDS.map((field) => (
+              <div key={field} className="form-group">
+                <label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                <input
+                  id={field}
+                  name={field}
+                  type="url"
+                  placeholder={`https://${field}.com/username`}
+                  value={form[field]}
+                  onChange={handleChange}
+                />
+              </div>
+            ))}
+          </section>
+
+          <section className="profile-section">
+            <h2 className="profile-section-title">Contact Info</h2>
+            <div className="form-group">
+              <label htmlFor="gmail">Gmail</label>
+              <input
+                id="gmail"
+                name="gmail"
+                type="email"
+                placeholder="you@gmail.com"
+                value={form.gmail}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="telegram">Telegram</label>
+              <input
+                id="telegram"
+                name="telegram"
+                placeholder="@username"
+                value={form.telegram}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="discord">Discord</label>
+              <input
+                id="discord"
+                name="discord"
+                placeholder="username#1234"
+                value={form.discord}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="whatsapp">WhatsApp</label>
+              <input
+                id="whatsapp"
+                name="whatsapp"
+                placeholder="+1234567890"
+                value={form.whatsapp}
+                onChange={handleChange}
+              />
+            </div>
+          </section>
+
+          <section className="profile-section">
+            <h2 className="profile-section-title">Resume</h2>
+            <ResumeUpload
+              user={user}
+              onUpload={handleResumeUpload}
+              disabled={loading}
+            />
+          </section>
+
           <div className="form-actions">
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? 'Saving...' : 'Save changes'}

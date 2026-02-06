@@ -95,10 +95,31 @@
 
 .profile-main {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 2rem;
   max-width: 480px;
   margin: 0 auto;
   width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.profile-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.profile-main::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.profile-main::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .profile-form {
@@ -158,6 +179,19 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+.profile-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.profile-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 1rem 0;
 }
 
 .form-actions {

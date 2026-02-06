@@ -15,6 +15,19 @@ class User(AbstractUser):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     address = models.CharField(max_length=500, blank=True)
+    # Social links
+    github = models.URLField(max_length=500, blank=True)
+    facebook = models.URLField(max_length=500, blank=True)
+    twitter = models.URLField(max_length=500, blank=True)
+    instagram = models.URLField(max_length=500, blank=True)
+    youtube = models.URLField(max_length=500, blank=True)
+    # Contact info
+    gmail = models.EmailField(max_length=254, blank=True)
+    telegram = models.CharField(max_length=100, blank=True)
+    discord = models.CharField(max_length=100, blank=True)
+    whatsapp = models.CharField(max_length=50, blank=True)
+    # Resume
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
 
     class Meta:
         db_table = 'trutim_users'

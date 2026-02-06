@@ -12,13 +12,21 @@ AVATAR_MAX_SIZE = 2 * 1024 * 1024  # 2MB
 AVATAR_ALLOWED_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
 
 
+# Resume constraints
+RESUME_MAX_SIZE = 5 * 1024 * 1024  # 5MB
+RESUME_ALLOWED_TYPES = {'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+
+
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False, allow_null=True)
+    resume = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'title', 'avatar', 'online', 'last_seen',
-                  'latitude', 'longitude', 'address']
+                  'latitude', 'longitude', 'address',
+                  'github', 'facebook', 'twitter', 'instagram', 'youtube',
+                  'gmail', 'telegram', 'discord', 'whatsapp', 'resume']
         read_only_fields = ['id', 'online', 'last_seen']
 
     def validate_avatar(self, value):
@@ -32,11 +40,25 @@ class UserSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_resume(self, value):
+        if value is None:
+            return value
+        if value.size > RESUME_MAX_SIZE:
+            raise serializers.ValidationError('Resume must be under 5MB.')
+        if value.content_type not in RESUME_ALLOWED_TYPES:
+            raise serializers.ValidationError(
+                'Invalid file type. Use PDF or Word document.'
+            )
+        return value
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         # Return relative avatar URL so it works through Vite proxy
         if data.get('avatar') and isinstance(data['avatar'], str) and data['avatar'].startswith('http'):
             data['avatar'] = f"/media/{instance.avatar.name}"
+        # Return relative resume URL
+        if data.get('resume') and isinstance(data['resume'], str) and data['resume'].startswith('http'):
+            data['resume'] = f"/media/{instance.resume.name}"
         return data
 
 
