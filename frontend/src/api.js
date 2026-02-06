@@ -50,6 +50,11 @@ export const users = {
     formData.append('avatar', file);
     return API.patch('/users/me/', formData);
   },
+  uploadResume: (file) => {
+    const formData = new FormData();
+    formData.append('resume', file);
+    return API.patch('/users/me/', formData);
+  },
   locationStats: () => API.get('/users/location-stats/'),
 };
 
