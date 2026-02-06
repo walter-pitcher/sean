@@ -12,17 +12,25 @@ export default function WorldMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const fetchLocations = () => {
+    setLoading(true);
+    setError(null);
     users
       .locationStats()
       .then(({ data }) => {
         setRegions(data.regions || []);
-        setTotal(data.total || 0);
+        setTotal(data.total ?? 0);
       })
       .catch((err) => {
-        setError(err.response?.data?.detail || 'Failed to load map data');
+        const detail = err.response?.data?.detail;
+        const msg = typeof detail === 'string' ? detail : 'Failed to load map data';
+        setError(msg);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchLocations();
   }, []);
 
   if (loading) {
@@ -42,6 +50,14 @@ export default function WorldMap() {
         <div className="world-map-error">
           <GlobeIcon size={48} />
           <p>{error}</p>
+          <button
+            type="button"
+            className="world-map-refresh-btn"
+            onClick={fetchLocations}
+            disabled={loading}
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -54,9 +70,20 @@ export default function WorldMap() {
   return (
     <div className="world-map-page">
       <header className="world-map-header">
-        <h1>
-          <GlobeIcon size={24} /> User Map
-        </h1>
+        <div className="world-map-header-content">
+          <h1>
+            <GlobeIcon size={24} /> User Map
+          </h1>
+          <button
+            type="button"
+            className="world-map-refresh-btn"
+            onClick={fetchLocations}
+            disabled={loading}
+            title="Refresh locations"
+          >
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
         <p className="world-map-subtitle">
           {total} user{total !== 1 ? 's' : ''} with location set
           {total === 0 && ' — Set your location in Profile Settings to appear here'}

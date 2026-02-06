@@ -14,11 +14,16 @@ L.Icon.Default.mergeOptions({
 });
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
+// Nominatim usage policy requires a valid User-Agent identifying the application
+const NOMINATIM_HEADERS = {
+  'Accept-Language': 'en',
+  'User-Agent': 'Trutim/1.0 (https://github.com/trutim; contact@trutim.app)',
+};
 
 async function geocodeAddress(query) {
   const res = await fetch(
     `${NOMINATIM_URL}/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
-    { headers: { 'Accept-Language': 'en' } }
+    { headers: NOMINATIM_HEADERS }
   );
   const data = await res.json();
   if (data?.[0]) {
@@ -31,7 +36,7 @@ async function geocodeAddress(query) {
 async function reverseGeocode(lat, lng) {
   const res = await fetch(
     `${NOMINATIM_URL}/reverse?lat=${lat}&lon=${lng}&format=json`,
-    { headers: { 'Accept-Language': 'en' } }
+    { headers: NOMINATIM_HEADERS }
   );
   const data = await res.json();
   return data?.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
