@@ -427,6 +427,30 @@
   margin-bottom: 0.25rem;
 }
 
+.right-sidebar-link-icons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.35rem;
+}
+
+.right-sidebar-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+
+.right-sidebar-link-icon:hover {
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
 .right-sidebar-title {
   font-size: 0.85rem;
   color: var(--accent);
