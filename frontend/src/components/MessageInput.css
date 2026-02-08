@@ -6,6 +6,7 @@
 
 .message-input-form {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   background: var(--bg-secondary);
@@ -97,8 +98,8 @@
 }
 
 .message-input-form .input-wrapper {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 120px;
+  min-width: 120px;
   position: relative;
   display: flex;
   align-items: center;
@@ -330,11 +331,17 @@
 @media (max-width: 768px) {
   .message-input-form {
     gap: 0.4rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .message-input-form .input-wrapper {
+    min-width: 80px;
   }
 
   .message-toolbar-inline {
     flex-wrap: wrap;
     gap: 0.2rem;
+    max-width: 100%;
   }
 
   .link-modal-overlay .link-modal {
@@ -345,12 +352,21 @@
 
 @media (max-width: 480px) {
   .message-input-container {
-    padding: 0.5rem 0 0.35rem;
+    padding: 0.5rem 0.25rem 0.35rem;
   }
 
   .message-input-form {
     padding: 0.35rem 0.5rem;
     gap: 0.35rem;
+  }
+
+  .message-input-form .input-wrapper {
+    min-width: 60px;
+  }
+
+  .message-textarea {
+    min-height: 36px;
+    font-size: 0.9rem;
   }
 
   .toolbar-btn {
@@ -393,11 +409,15 @@
 
 @media (max-width: 360px) {
   .message-input-container {
-    padding: 0.4rem 0 0.25rem;
+    padding: 0.4rem 0.2rem 0.25rem;
   }
 
   .message-input-form {
     padding: 0.3rem 0.4rem;
+  }
+
+  .message-input-form .input-wrapper {
+    min-width: 0;
   }
 
   .toolbar-btn {
@@ -409,5 +429,9 @@
     width: 32px;
     height: 32px;
     min-width: 32px;
+  }
+
+  .quick-emojis-inline {
+    display: none;
   }
 }

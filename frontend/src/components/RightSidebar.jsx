@@ -6,11 +6,15 @@ import Avatar from './Avatar';
 import {
   MailIcon,
   MapPinIcon,
-  LinkIcon,
   FileIcon,
   HashIcon,
   XIcon,
   EditIcon,
+  GitHubIcon,
+  TwitterIcon,
+  FacebookIcon,
+  InstagramIcon,
+  YouTubeIcon,
 } from './icons';
 import './RightSidebar.css';
 
@@ -34,6 +38,13 @@ function UserInfoPanel({ userId, onClose, getPresenceStatus }) {
   if (error) return <div className="right-sidebar-error">{error}</div>;
   if (!user) return null;
 
+  const SOCIAL_ICONS = {
+    github: GitHubIcon,
+    twitter: TwitterIcon,
+    facebook: FacebookIcon,
+    instagram: InstagramIcon,
+    youtube: YouTubeIcon,
+  };
   const contactLinks = [];
   if (user.github) contactLinks.push({ label: 'GitHub', url: user.github, icon: 'github' });
   if (user.twitter) contactLinks.push({ label: 'Twitter', url: user.twitter, icon: 'twitter' });
@@ -67,6 +78,26 @@ function UserInfoPanel({ userId, onClose, getPresenceStatus }) {
           {user.first_name} {user.last_name}
         </h2>
         <span className="right-sidebar-username">@{user.username}</span>
+        {contactLinks.length > 0 && (
+          <div className="right-sidebar-link-icons">
+            {contactLinks.map(({ label, url, icon }) => {
+              const IconComponent = SOCIAL_ICONS[icon];
+              return IconComponent ? (
+                <a
+                  key={icon}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="right-sidebar-link-icon"
+                  title={label}
+                  aria-label={label}
+                >
+                  <IconComponent size={18} />
+                </a>
+              ) : null;
+            })}
+          </div>
+        )}
         {user.title && <span className="right-sidebar-title">{user.title}</span>}
       </div>
       <div className="right-sidebar-body">
@@ -87,22 +118,6 @@ function UserInfoPanel({ userId, onClose, getPresenceStatus }) {
               {contactInfo.map(({ label, value }) => (
                 <li key={label}>
                   <span className="info-label">{label}:</span> {value}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {contactLinks.length > 0 && (
-          <div className="right-sidebar-section">
-            <div className="section-label">
-              <LinkIcon size={14} /> Public links
-            </div>
-            <ul className="info-list links-list">
-              {contactLinks.map(({ label, url }) => (
-                <li key={label}>
-                  <a href={url} target="_blank" rel="noopener noreferrer">
-                    {label}
-                  </a>
                 </li>
               ))}
             </ul>
