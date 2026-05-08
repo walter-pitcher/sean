@@ -88,6 +88,15 @@ export default function EmojiPicker({ onSelect, visible, onClose, theme = 'light
     [onSelect]
   );
 
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visible, onClose]);
+
   if (!visible) return null;
 
   const pickerTheme = theme === 'dark' ? Theme.DARK : Theme.LIGHT;
