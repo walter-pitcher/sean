@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, startTransition } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { users as usersApi, rooms } from '../api';
 import { usePresence } from '../context/PresenceContext';
 import Avatar from './Avatar';
@@ -18,6 +18,14 @@ import {
 } from './icons';
 import './RightSidebar.css';
 
+const SOCIAL_ICONS = {
+  github: GitHubIcon,
+  twitter: TwitterIcon,
+  facebook: FacebookIcon,
+  instagram: InstagramIcon,
+  youtube: YouTubeIcon,
+};
+
 function UserInfoPanel({ userId, onClose, getPresenceStatus }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,26 +33,28 @@ function UserInfoPanel({ userId, onClose, getPresenceStatus }) {
 
   useEffect(() => {
     if (!userId) return;
-    setLoading(true);
-    setError(null);
+    const ac = new AbortController();
+    startTransition(() => {
+      setLoading(true);
+      setError(null);
+    });
     usersApi
-      .get(userId)
+      .get(userId, { signal: ac.signal })
       .then(({ data }) => setUser(data))
-      .catch(() => setError('Failed to load user'))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (err.code === 'ERR_CANCELED' || err.name === 'CanceledError') return;
+        setError('Failed to load user');
+      })
+      .finally(() => {
+        if (!ac.signal.aborted) setLoading(false);
+      });
+    return () => ac.abort();
   }, [userId]);
 
   if (loading) return <div className="right-sidebar-loading">Loading...</div>;
   if (error) return <div className="right-sidebar-error">{error}</div>;
   if (!user) return null;
 
-  const SOCIAL_ICONS = {
-    github: GitHubIcon,
-    twitter: TwitterIcon,
-    facebook: FacebookIcon,
-    instagram: InstagramIcon,
-    youtube: YouTubeIcon,
-  };
   const contactLinks = [];
   if (user.github) contactLinks.push({ label: 'GitHub', url: user.github, icon: 'github' });
   if (user.twitter) contactLinks.push({ label: 'Twitter', url: user.twitter, icon: 'twitter' });
@@ -155,13 +165,22 @@ function CompanyMembersPanel({ companyId, currentUserId, onClose, onCompanyUpdat
 
   useEffect(() => {
     if (!companyId) return;
-    setLoading(true);
-    setError(null);
+    const ac = new AbortController();
+    startTransition(() => {
+      setLoading(true);
+      setError(null);
+    });
     rooms
-      .get(companyId)
+      .get(companyId, { signal: ac.signal })
       .then(({ data }) => setRoom(data))
-      .catch(() => setError('Failed to load company'))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (err.code === 'ERR_CANCELED' || err.name === 'CanceledError') return;
+        setError('Failed to load company');
+      })
+      .finally(() => {
+        if (!ac.signal.aborted) setLoading(false);
+      });
+    return () => ac.abort();
   }, [companyId]);
 
   const isOwner = room && currentUserId && room.created_by?.id === currentUserId;

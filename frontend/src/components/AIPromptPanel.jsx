@@ -1,11 +1,14 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { TextStreamChatTransport } from 'ai';
 import './AIPromptPanel.css';
 
+const NEAR_BOTTOM_PX = 96;
+
 export default function AIPromptPanel({ onClose, isOpen }) {
-  const messagesEndRef = useRef(null);
+  const messagesScrollRef = useRef(null);
   const inputRef = useRef(null);
+  const stickToBottomRef = useRef(true);
 
   const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new TextStreamChatTransport({
@@ -18,9 +21,35 @@ export default function AIPromptPanel({ onClose, isOpen }) {
     }),
   });
 
+  const updateStickToBottom = useCallback(() => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distanceFromBottom <= NEAR_BOTTOM_PX;
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!stickToBottomRef.current) return;
+    const el = messagesScrollRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages, status]);
+
+  useEffect(() => {
+    if (isOpen) {
+      stickToBottomRef.current = true;
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen && status === 'ready') {
@@ -28,12 +57,26 @@ export default function AIPromptPanel({ onClose, isOpen }) {
     }
   }, [isOpen, status]);
 
+  const syncTextareaHeight = useCallback(() => {
+    const ta = inputRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    const max = 200;
+    ta.style.height = `${Math.min(max, Math.max(40, ta.scrollHeight))}px`;
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) syncTextareaHeight();
+  }, [isOpen, syncTextareaHeight]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const input = inputRef.current;
     if (!input?.value?.trim()) return;
+    stickToBottomRef.current = true;
     sendMessage({ text: input.value.trim() });
     input.value = '';
+    syncTextareaHeight();
   };
 
   const handleKeyDown = (e) => {
@@ -58,7 +101,11 @@ export default function AIPromptPanel({ onClose, isOpen }) {
           </button>
         </div>
 
-        <div className="ai-panel-messages">
+        <div
+          className="ai-panel-messages"
+          ref={messagesScrollRef}
+          onScroll={updateStickToBottom}
+        >
           {messages.length === 0 && (
             <div className="ai-panel-empty">
               <p>Ask me anything. I can help with ideas, writing, or answering questions.</p>
@@ -91,7 +138,7 @@ export default function AIPromptPanel({ onClose, isOpen }) {
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
+          <div className="ai-scroll-anchor" aria-hidden />
         </div>
 
         {error && (
@@ -109,6 +156,7 @@ export default function AIPromptPanel({ onClose, isOpen }) {
             placeholder="Type your message..."
             rows={1}
             onKeyDown={handleKeyDown}
+            onInput={syncTextareaHeight}
             disabled={status === 'streaming' || status === 'submitted'}
             className="ai-panel-input"
           />

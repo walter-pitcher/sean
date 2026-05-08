@@ -44,7 +44,7 @@ export const auth = {
 
 export const users = {
   list: () => API.get('/users/'),
-  get: (id) => API.get(`/users/${id}/`),
+  get: (id, config) => API.get(`/users/${id}/`, config),
   me: () => API.get('/users/me/'),
   updateMe: (data) => API.patch('/users/me/', data),
   uploadAvatar: (file) => {
@@ -65,7 +65,7 @@ export const rooms = {
   create: (data) => API.post('/rooms/', data),
   update: (id, data) => API.patch(`/rooms/${id}/`, data),
   dm: (userId) => API.post('/rooms/dm/', { user_id: userId }),
-  get: (id) => API.get(`/rooms/${id}/`),
+  get: (id, config) => API.get(`/rooms/${id}/`, config),
   join: (id) => API.post(`/rooms/${id}/join/`),
   leave: (id) => API.post(`/rooms/${id}/leave/`),
   channels: {
