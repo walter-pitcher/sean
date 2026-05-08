@@ -28,7 +28,7 @@ API.interceptors.response.use(
         } catch (_) {
           localStorage.removeItem('access');
           localStorage.removeItem('refresh');
-          window.location.href = '/login';
+          window.location.href = '/landing';
         }
       }
     }

@@ -6,6 +6,10 @@ import { PresenceProvider } from './context/PresenceContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OAuthCallback from './pages/OAuthCallback';
+import Landing from './pages/Landing';
+import FAQ from './pages/FAQ';
+import Policy from './pages/Policy';
+import Terms from './pages/Terms';
 import MainLayout from './components/MainLayout';
 import Dashboard from './pages/Dashboard';
 import CompanyRoom from './pages/CompanyRoom';
@@ -22,7 +26,7 @@ function RoomRedirect() {
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="loading-screen"><div className="spinner" /></div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/landing" replace />;
   return children;
 }
 
@@ -33,6 +37,10 @@ function App() {
         <UserStatusProvider>
         <BrowserRouter>
         <Routes>
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/policy" element={<Policy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
@@ -44,7 +52,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="map" element={<WorldMap />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/landing" replace />} />
         </Routes>
       </BrowserRouter>
         </UserStatusProvider>
