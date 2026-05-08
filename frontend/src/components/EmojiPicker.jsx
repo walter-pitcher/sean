@@ -37,17 +37,25 @@ export default function EmojiPicker({ onSelect, visible, onClose, theme = 'light
   useEffect(() => {
     if (!visible || !containerRef.current) return;
     const wrapper = containerRef.current;
-    if (anchorRef?.current) {
-      const rect = anchorRef.current.getBoundingClientRect();
-      const pickerWidth = 352;
-      const pickerHeight = 360;
+    const margin = 8;
+    const pickerWidth = 352;
+    const pickerHeight = 360;
+
+    const position = () => {
+      const anchor = anchorRef?.current;
+      if (!anchor) {
+        wrapper.style.position = '';
+        wrapper.style.top = '';
+        wrapper.style.bottom = '';
+        wrapper.style.left = '';
+        return;
+      }
+      const rect = anchor.getBoundingClientRect();
       const spaceAbove = rect.top;
-      const margin = 8;
       wrapper.style.position = 'fixed';
       wrapper.style.zIndex = '1000';
       wrapper.style.width = `${pickerWidth}px`;
       wrapper.style.height = `${pickerHeight}px`;
-      // Position above the anchor, to the left of the button
       let leftPos = Math.max(margin, rect.left - pickerWidth);
       if (leftPos + pickerWidth > window.innerWidth - margin) {
         leftPos = window.innerWidth - pickerWidth - margin;
@@ -60,13 +68,27 @@ export default function EmojiPicker({ onSelect, visible, onClose, theme = 'light
         wrapper.style.bottom = 'auto';
         wrapper.style.top = `${rect.bottom + margin}px`;
       }
-    } else {
-      wrapper.style.position = '';
-      wrapper.style.top = '';
-      wrapper.style.bottom = '';
-      wrapper.style.left = '';
-    }
+    };
+
+    position();
+    const raf = requestAnimationFrame(position);
+    window.addEventListener('resize', position);
+    window.addEventListener('scroll', position, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', position);
+      window.removeEventListener('scroll', position, true);
+    };
   }, [visible, anchorRef]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visible, onClose]);
 
   if (!visible) return null;
 
