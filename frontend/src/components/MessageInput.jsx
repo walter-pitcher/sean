@@ -11,6 +11,79 @@ const FONT_SIZES = [
   { label: 'L', value: 'large', wrap: '<big>', wrapEnd: '</big>' },
 ];
 
+const EMOJI_SHORTCODES = {
+  smile: '😄',
+  smiley: '😃',
+  grinning: '😀',
+  grin: '😁',
+  joy: '😂',
+  rofl: '🤣',
+  blush: '😊',
+  wink: '😉',
+  heart_eyes: '😍',
+  kissing_heart: '😘',
+  thinking: '🤔',
+  neutral_face: '😐',
+  expressionless: '😑',
+  unamused: '😒',
+  sweat_smile: '😅',
+  sob: '😭',
+  cry: '😢',
+  angry: '😠',
+  rage: '😡',
+  scream: '😱',
+  thumbs_up: '👍',
+  '+1': '👍',
+  thumbs_down: '👎',
+  '-1': '👎',
+  clap: '👏',
+  wave: '👋',
+  raised_hands: '🙌',
+  pray: '🙏',
+  muscle: '💪',
+  ok_hand: '👌',
+  point_up: '☝️',
+  point_down: '👇',
+  point_left: '👈',
+  point_right: '👉',
+  fire: '🔥',
+  sparkles: '✨',
+  star: '⭐',
+  boom: '💥',
+  rocket: '🚀',
+  eyes: '👀',
+  brain: '🧠',
+  laptop: '💻',
+  bug: '🐛',
+  white_check_mark: '✅',
+  x: '❌',
+  warning: '⚠️',
+  tada: '🎉',
+  party_popper: '🎉',
+  gift: '🎁',
+  coffee: '☕',
+  pizza: '🍕',
+  apple: '🍎',
+  green_heart: '💚',
+  blue_heart: '💙',
+  purple_heart: '💜',
+  yellow_heart: '💛',
+  orange_heart: '🧡',
+  black_heart: '🖤',
+  white_heart: '🤍',
+  broken_heart: '💔',
+  heart: '❤️',
+  hundred: '💯',
+};
+
+function expandEmojiShortcodes(text) {
+  if (!text) return text;
+  return text.replace(/:([a-z0-9_+-]+):/gi, (full, code) => {
+    const emoji = EMOJI_SHORTCODES[code.toLowerCase()];
+    return emoji || full;
+  });
+}
+
 function saveSelection() {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return null;
@@ -293,7 +366,7 @@ export default function MessageInput({
     const md = htmlToMarkdown(el.innerHTML);
     const text = md.trim();
     if (!text) return;
-    onSend?.(text);
+    onSend?.(expandEmojiShortcodes(text));
     isInternalUpdateRef.current = true;
     onChange('');
     el.innerHTML = '';
