@@ -1,75 +1,47 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import 'emoji-picker-element';
+import EmojiPickerLib, { Theme } from 'emoji-picker-react';
+import './EmojiPicker.css';
+
+const PICKER_WIDTH = 352;
+const PICKER_HEIGHT = 420;
 
 export default function EmojiPicker({ onSelect, visible, onClose, theme = 'light', anchorRef }) {
-  const containerRef = useRef(null);
+  const wrapperRef = useRef(null);
 
-  useEffect(() => {
-    if (!containerRef.current || !visible) return;
-
-    const picker = document.createElement('emoji-picker');
-    picker.classList.add(theme === 'dark' ? 'dark' : 'light');
-    picker.setAttribute('style', '--num-columns: 8;');
-    containerRef.current.innerHTML = '';
-    containerRef.current.appendChild(picker);
-
-    const handler = (e) => {
-      const emoji = e.detail?.unicode ?? e.detail?.emoji?.unicode;
-      if (emoji) onSelect(emoji);
-    };
-    picker.addEventListener('emoji-click', handler);
-
-    const clickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target) && !anchorRef?.current?.contains(e.target)) {
-        onClose?.();
-      }
-    };
-    const t = setTimeout(() => document.addEventListener('click', clickOutside), 0);
-
-    return () => {
-      clearTimeout(t);
-      picker.removeEventListener('emoji-click', handler);
-      document.removeEventListener('click', clickOutside);
-    };
-  }, [visible, onSelect, onClose, theme, anchorRef]);
-
-  useEffect(() => {
-    if (!visible || !containerRef.current) return;
-    const wrapper = containerRef.current;
+  const position = useCallback(() => {
+    const wrapper = wrapperRef.current;
+    const anchor = anchorRef?.current;
     const margin = 8;
-    const pickerWidth = 352;
-    const pickerHeight = 360;
+    if (!wrapper) return;
+    if (!anchor) {
+      wrapper.style.position = '';
+      wrapper.style.top = '';
+      wrapper.style.bottom = '';
+      wrapper.style.left = '';
+      return;
+    }
+    const rect = anchor.getBoundingClientRect();
+    const spaceAbove = rect.top;
+    wrapper.style.position = 'fixed';
+    wrapper.style.zIndex = '1000';
+    wrapper.style.width = `${PICKER_WIDTH}px`;
+    let leftPos = Math.max(margin, rect.left - PICKER_WIDTH);
+    if (leftPos + PICKER_WIDTH > window.innerWidth - margin) {
+      leftPos = window.innerWidth - PICKER_WIDTH - margin;
+    }
+    wrapper.style.left = `${leftPos}px`;
+    if (spaceAbove >= PICKER_HEIGHT + margin) {
+      wrapper.style.top = 'auto';
+      wrapper.style.bottom = `${window.innerHeight - rect.top + margin}px`;
+    } else {
+      wrapper.style.bottom = 'auto';
+      wrapper.style.top = `${rect.bottom + margin}px`;
+    }
+  }, [anchorRef]);
 
-    const position = () => {
-      const anchor = anchorRef?.current;
-      if (!anchor) {
-        wrapper.style.position = '';
-        wrapper.style.top = '';
-        wrapper.style.bottom = '';
-        wrapper.style.left = '';
-        return;
-      }
-      const rect = anchor.getBoundingClientRect();
-      const spaceAbove = rect.top;
-      wrapper.style.position = 'fixed';
-      wrapper.style.zIndex = '1000';
-      wrapper.style.width = `${pickerWidth}px`;
-      wrapper.style.height = `${pickerHeight}px`;
-      let leftPos = Math.max(margin, rect.left - pickerWidth);
-      if (leftPos + pickerWidth > window.innerWidth - margin) {
-        leftPos = window.innerWidth - pickerWidth - margin;
-      }
-      wrapper.style.left = `${leftPos}px`;
-      if (spaceAbove >= pickerHeight + margin) {
-        wrapper.style.top = 'auto';
-        wrapper.style.bottom = `${window.innerHeight - rect.top + margin}px`;
-      } else {
-        wrapper.style.bottom = 'auto';
-        wrapper.style.top = `${rect.bottom + margin}px`;
-      }
-    };
-
+  useEffect(() => {
+    if (!visible) return;
     position();
     const raf = requestAnimationFrame(position);
     window.addEventListener('resize', position);
@@ -79,7 +51,7 @@ export default function EmojiPicker({ onSelect, visible, onClose, theme = 'light
       window.removeEventListener('resize', position);
       window.removeEventListener('scroll', position, true);
     };
-  }, [visible, anchorRef]);
+  }, [visible, position]);
 
   useEffect(() => {
     if (!visible) return;
@@ -90,8 +62,49 @@ export default function EmojiPicker({ onSelect, visible, onClose, theme = 'light
     return () => window.removeEventListener('keydown', onKey);
   }, [visible, onClose]);
 
+  useEffect(() => {
+    if (!visible) return;
+    const clickOutside = (e) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target) &&
+        !anchorRef?.current?.contains(e.target)
+      ) {
+        onClose?.();
+      }
+    };
+    const t = setTimeout(() => document.addEventListener('click', clickOutside), 0);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener('click', clickOutside);
+    };
+  }, [visible, onClose, anchorRef]);
+
+  const handleEmojiClick = useCallback(
+    (emojiData) => {
+      const emoji = emojiData?.emoji;
+      if (emoji) onSelect?.(emoji);
+    },
+    [onSelect]
+  );
+
   if (!visible) return null;
 
-  const content = <div className="emoji-picker-wrapper" ref={containerRef} />;
+  const pickerTheme = theme === 'dark' ? Theme.DARK : Theme.LIGHT;
+
+  const content = (
+    <div ref={wrapperRef} className="emoji-picker-portal">
+      <EmojiPickerLib
+        onEmojiClick={handleEmojiClick}
+        theme={pickerTheme}
+        width={PICKER_WIDTH}
+        height={PICKER_HEIGHT}
+        autoFocusSearch={false}
+        lazyLoadEmojis
+        searchPlaceholder="Search emoji..."
+      />
+    </div>
+  );
+
   return createPortal(content, document.body);
 }

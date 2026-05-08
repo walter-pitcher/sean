@@ -12,7 +12,7 @@
   "dependencies": {
     "@ai-sdk/react": "^3.0.74",
     "axios": "^1.13.4",
-    "emoji-picker-element": "^1.28.1",
+    "emoji-picker-react": "^4.13.2",
     "highlight.js": "^11.11.1",
     "leaflet": "^1.9.4",
     "mermaid": "^11.12.2",
