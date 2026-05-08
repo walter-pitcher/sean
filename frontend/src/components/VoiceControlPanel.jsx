@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { MicIcon, XIcon } from './icons';
 import './VoiceControlPanel.css';
 
@@ -19,8 +19,7 @@ export default function VoiceControlPanel({
   sendTextCommand,
 }) {
   const [textCommand, setTextCommand] = useState('');
-
-  if (!isOpen) return null;
+  const textInputRef = useRef(null);
 
   const handleSendCommand = () => {
     const trimmed = textCommand.trim();
@@ -29,6 +28,14 @@ export default function VoiceControlPanel({
       setTextCommand('');
     }
   };
+
+  useEffect(() => {
+    if (isOpen && connected) {
+      textInputRef.current?.focus();
+    }
+  }, [isOpen, connected]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="voice-control-overlay" onClick={onClose}>
@@ -119,6 +126,7 @@ export default function VoiceControlPanel({
                 <label className="voice-control-label">Or type a command</label>
                 <div className="voice-control-input-row">
                   <input
+                    ref={textInputRef}
                     type="text"
                     value={textCommand}
                     onChange={(e) => setTextCommand(e.target.value)}

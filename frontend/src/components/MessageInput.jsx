@@ -24,6 +24,17 @@ function restoreSelection(savedRange) {
   sel.addRange(savedRange);
 }
 
+/** Turn user-typed hosts like example.com into https links; keep mailto:, /relative, etc. */
+function normalizeUrl(raw) {
+  const t = raw.trim();
+  if (!t) return '';
+  if (/^https?:\/\//i.test(t)) return t;
+  if (t.startsWith('//')) return `https:${t}`;
+  if (t.startsWith('/') || t.startsWith('#')) return t;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(t)) return t;
+  return `https://${t}`;
+}
+
 export default function MessageInput({
   value,
   onChange,
@@ -121,7 +132,8 @@ export default function MessageInput({
   };
 
   const insertLink = () => {
-    if (!linkUrl.trim()) return;
+    const href = normalizeUrl(linkUrl);
+    if (!href) return;
     const text = linkText.trim() || linkUrl.trim();
     const el = editorRef.current;
     if (!el) return;
@@ -130,7 +142,7 @@ export default function MessageInput({
     const sel = window.getSelection();
     const range = sel?.rangeCount > 0 ? sel.getRangeAt(0) : null;
     const a = document.createElement('a');
-    a.href = linkUrl.trim();
+    a.href = href;
     a.textContent = text;
     if (range) {
       range.deleteContents();
@@ -228,7 +240,7 @@ export default function MessageInput({
           const { data } = await onFileUpload(file);
           url = data.url || data;
           text = `📎 ${data.filename || file.name}`;
-        } catch (err) {
+        } catch {
           text = `📎 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
         }
       } else {
@@ -426,7 +438,7 @@ export default function MessageInput({
             />
             <div className="link-modal-actions">
               <button type="button" onClick={() => setShowLinkModal(false)}>Cancel</button>
-              <button type="button" onClick={insertLink} disabled={!linkUrl.trim()}>Insert</button>
+              <button type="button" onClick={insertLink} disabled={!normalizeUrl(linkUrl)}>Insert</button>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { CodeIcon, XIcon, SendArrowIcon } from './icons';
 import './ShareCodePanel.css';
 
@@ -18,11 +18,62 @@ const LANGUAGES = [
   { value: 'git', label: 'Git' },
 ];
 
+function inferCodeLanguage(text) {
+  const t = text.trim();
+  if (t.length < 14) return '';
+  if (/^\s*<!DOCTYPE html|^<html[\s>/]|^<head[\s>]/im.test(t)) return 'html';
+  if (/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER)\s+/im.test(t)) return 'sql';
+  if (/^\s*(import\s+\w+\s+from|from\s+[\w.]+\s+import|def\s+\w+\s*\(|class\s+\w+\s*:)/m.test(t)) return 'python';
+  if (/^\s*(package\s+\w|func\s+\(|type\s+\w+\s+struct)/m.test(t)) return 'go';
+  if (/^\s*(fn\s+\w|let\s+mut\s|impl\s|use\s+std::)/m.test(t)) return 'rust';
+  if (/^\s*(public\s+class|import\s+java\.)/m.test(t)) return 'java';
+  if (/^[\s\n]*\{[\s\S]*"[^"]+"\s*:/m.test(t)) return 'json';
+  if (/^\s*(interface\s+\w|type\s+\w+\s*[={<]|\)\s*:\s*\w+)/m.test(t)) return 'typescript';
+  if (/^\s*(function\s*\(|const\s+\w+\s*=\s*\(|let\s+\w+\s*=\s*\(|=>)/m.test(t)) return 'javascript';
+  if (/^#!\/bin\/(ba)?sh/m.test(t)) return 'bash';
+  if (/^\s*(git\s+(commit|push|pull|checkout|rebase)|^#.*\bbranch\b)/im.test(t)) return 'git';
+  return '';
+}
+
 export default function ShareCodePanel({ isOpen, onClose, onShare }) {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('');
+  const codeInputRef = useRef(null);
+  const userPickedLanguageRef = useRef(false);
+  const inferDebounceRef = useRef(null);
+
+  const handleClose = useCallback(() => {
+    if (inferDebounceRef.current) {
+      clearTimeout(inferDebounceRef.current);
+      inferDebounceRef.current = null;
+    }
+    setCode('');
+    setLanguage('');
+    onClose?.();
+  }, [onClose]);
+
+  const handleCodeChange = (e) => {
+    const v = e.target.value;
+    setCode(v);
+    if (inferDebounceRef.current) clearTimeout(inferDebounceRef.current);
+    inferDebounceRef.current = setTimeout(() => {
+      inferDebounceRef.current = null;
+      if (userPickedLanguageRef.current) return;
+      setLanguage((lang) => {
+        if (lang !== '') return lang;
+        const t = v.trim();
+        if (t.length < 28) return lang;
+        const guess = inferCodeLanguage(t);
+        return guess || lang;
+      });
+    }, 350);
+  };
 
   const handleShare = () => {
+    if (inferDebounceRef.current) {
+      clearTimeout(inferDebounceRef.current);
+      inferDebounceRef.current = null;
+    }
     const trimmed = code.trim();
     if (!trimmed) return;
     const langTag = language ? language : '';
@@ -33,11 +84,25 @@ export default function ShareCodePanel({ isOpen, onClose, onShare }) {
     onClose?.();
   };
 
-  const handleClose = () => {
-    setCode('');
-    setLanguage('');
-    onClose?.();
-  };
+  useEffect(() => {
+    if (isOpen) {
+      userPickedLanguageRef.current = false;
+      requestAnimationFrame(() => codeInputRef.current?.focus());
+    }
+  }, [isOpen]);
+
+  useEffect(() => () => {
+    if (inferDebounceRef.current) clearTimeout(inferDebounceRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
@@ -59,7 +124,10 @@ export default function ShareCodePanel({ isOpen, onClose, onShare }) {
           <div className="share-code-language-row">
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) => {
+                userPickedLanguageRef.current = true;
+                setLanguage(e.target.value);
+              }}
               className="share-code-language"
             >
               {LANGUAGES.map((opt) => (
@@ -70,9 +138,10 @@ export default function ShareCodePanel({ isOpen, onClose, onShare }) {
             </select>
           </div>
           <textarea
+            ref={codeInputRef}
             className="share-code-input"
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={handleCodeChange}
             placeholder="Paste or type your code here..."
             spellCheck={false}
           />
